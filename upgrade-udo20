@@ -36,6 +36,6 @@ for UPGRADE_NAME in $UPGRADE_LIST; do
   UDO_USER=$(echo "$UPGRADE_NAME" | cut -f1 -d_)
   UDO_SITE=$(echo "$UPGRADE_NAME" | cut -f2 -d_)
 
-  ./start-udo "$UDO_USER" -s "$UDO_SITE" -b UDO_BRANCH
+  ./start-udo "$UDO_USER" -s "$UDO_SITE" -b $UDO_BRANCH
   sleep 15
 done
