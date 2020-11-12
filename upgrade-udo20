@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
 
-docker pull "moddengine/moddengine:udo20-latest"
+while [[ $# -gt 0 ]]; do
+  key="$1"
+  case $key in
+  -b | --branch)
+    UDO_BRANCH="$2"
+    shift # past argument
+    shift # past value
+    ;;
+  esac
+done
+
+[[ -z "$UDO_BRANCH" ]] && UDO_BRANCH="udo20"
+
+docker pull "moddengine/moddengine:{$UDO_BRANCH}-latest"
 
 UPGRADE_LIST=$(
   whiptail \
-    --title "Udo20 Container to upgrade" \
+    --title "$UDO_BRANCH Container to upgrade" \
     --separate-output \
     --checklist "Select Container" 20 90 14 \
-    $(docker ps -a --format "{{ .Names }} {{ .Image }} OFF" --filter label=au.net.udo.ver=udo20) \
+    $(docker ps -a --format "{{ .Names }} {{ .Image }} OFF" --filter label=au.net.udo.ver="$UDO_BRANCH") \
     3>&1 1>&2 2>&3
 )
 
 if [[ -z "$UPGRADE_LIST" ]]; then
   echo "Nothing selected"
-  echo "'$UPGRADE_LIST'";
+  echo "'$UPGRADE_LIST'"
   exit 1
 fi
 
@@ -22,7 +35,6 @@ for UPGRADE_NAME in $UPGRADE_LIST; do
   UDO_USER=$(echo "$UPGRADE_NAME" | cut -f1 -d_)
   UDO_SITE=$(echo "$UPGRADE_NAME" | cut -f2 -d_)
 
-  ./start-udo "$UDO_USER" -s "$UDO_SITE"
+  ./start-udo "$UDO_USER" -s "$UDO_SITE" -b UDO_BRANCH
   sleep 15
 done
-

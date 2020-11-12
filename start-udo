@@ -63,7 +63,7 @@ echo "<!DOCTYPE html>
     </style>
 </head>
 <body>
-  <h3>Hang a sec, we are just doing some upgrades....</h3>
+  <h3>Hang on a sec, we are just doing some maintenance....</h3>
 </body>
 </html>" >"$UDO_BRANCH/www/internal_error503.html"
 
@@ -77,7 +77,7 @@ RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_BRANCH}/sock/nginx.sock|http://%{HTTP
 " >"$UDO_BRANCH/www/.htaccess"
 
 chown -R "$UDO_USER:$UDO_USER" "$UDO_DIR"
-chmod 777 "$UDO_BRANCH/www"
+chmod 775 "$UDO_BRANCH/www"
 
 DOCKER_USER=$(id -u "$UDO_USER"):$(id -g "$UDO_USER")
 CONTAINER_NAME="${UDO_USER}_${UDO_SITE}"
@@ -112,4 +112,3 @@ chmod 777 "$UDO_BRANCH/www"
 # Add live check, then create symlink
 ln -sf "$UDO_BRANCH/www" "$UDO_DIR/www"
 chown "$UDO_USER:$UDO_USER" "$UDO_DIR/www"
-
