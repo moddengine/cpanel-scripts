@@ -13,6 +13,7 @@ done
 
 [[ -z "$UDO_BRANCH" ]] && UDO_BRANCH="udo20"
 
+echo "Pulling latest version for $UDO_BRANCH"
 docker pull "moddengine/moddengine:{$UDO_BRANCH}-latest"
 
 UPGRADE_LIST=$(
