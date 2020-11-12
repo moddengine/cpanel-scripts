@@ -108,7 +108,7 @@ docker run -d --user "$DOCKER_USER" \
   --restart always \
   "moddengine/moddengine:${UDO_BRANCH}-latest"
 
-chmod 777 "$UDO_BRANCH/www"
+chmod 775 "$UDO_BRANCH/www"
 # Add live check, then create symlink
-ln -sf "$UDO_BRANCH/www" "$UDO_DIR/www"
+ln -fns "$UDO_BRANCH/www" "$UDO_DIR/www"
 chown "$UDO_USER:$UDO_USER" "$UDO_DIR/www"
