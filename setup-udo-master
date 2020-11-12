@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+NEW_USER="$1"
+[[ -z "$2" ]] && NEW_SITE="${NEW_USER}" || NEW_SITE="$2"
+[[ -z "$2" ]] && NEW_DB="udo20" || NEW_DB="$2"
+
+MASTER_PATH="/home/masterudonet/moddengine/site/master"
+MASTER_DB="masterudonet_udo19"
+DB_PASS=$(pwgen -sn1B 24)
+DB_NAME="${NEW_USER}_${NEW_DB}"
+
+if [[ -z "$NEW_USER" ]]
+then
+  echo "You must provide username"
+  exit 1
+fi
+
+NEW_HOME=$(getent passwd "$NEW_USER" | cut -d: -f6)
+
+if [[ -z "$NEW_HOME" ]] ||  [[ ! -d "$NEW_HOME" ]]
+then
+  echo "Unable to find home dir for user"
+  exit 1
+fi
+
+CHECKDB=$(mysqlshow "$DB_NAME" | grep -o "$DB_NAME")
+if [ "$CHECKDB" != "$DB_NAME" ]
+then
+  echo "Database already exists ($DB_NAME)"
+  exit 1
+fi
+
+if [[ -d "$NEW_HOME/udo/$NEW_SITE" ]]
+then
+  echo "Site data folder already exists, please remove it first"
+  exit 1
+fi
+
+mkdir -p "$NEW_HOME/udo/$NEW_SITE/site";
+cp -a "$MASTER_PATH/data" "$NEW_HOME/udo/$NEW_SITE/site"
+cp -a "$MASTER_PATH/plug.json" "$NEW_HOME/udo/$NEW_SITE/site"
+
+uapi --user="$NEW_USER" Mysql create_database name="$DB_NAME"
+uapi --user="$NEW_USER" Mysql create_user name="$DB_NAME" password="$DB_PASS"
+uapi --user="$NEW_USER" Mysql set_privileges_on_database \
+      user="$DB_NAME" database="$DB_NAME" privileges=ALL
+
+mysqldump $MASTER_DB | mysql "$DB_NAME"
+echo "{ \"db\": {
+  \"db\": \"$DB_NAME\",
+  \"user\":\"$DB_NAME\",
+  \"pass\":\"$DB_PASS\"
+}}" > "$NEW_HOME/udo/$NEW_SITE/site/conf.json"
+
+chown -R "$NEW_USER:$NEW_USER" "$NEW_HOME/udo"
+

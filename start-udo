@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+  -s | --site)
+    UDO_SITE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+  -b | --branch)
+    UDO_BRANCH="$2"
+    shift # past argument
+    shift # past value
+    ;;
+  *)
+    UDO_USER="$1"
+    shift # past argument
+    ;;
+  esac
+done
+
+if [[ -z "$UDO_USER" ]]; then
+  echo "You must pass username to script"
+  exit 1
+fi
+[[ -z "$UDO_SITE" ]] && UDO_SITE=$UDO_USER
+[[ -z "$UDO_BRANCH" ]] && UDO_BRANCH="udo20"
+UDO_HOME=$(getent passwd "$UDO_USER" | cut -d: -f6)
+UDO_DIR="$UDO_HOME/udo/$UDO_SITE"
+
+if [[ -z "$UDO_HOME" ]] || [[ ! -d "$UDO_HOME" ]]; then
+  echo "Could not find users home directory"
+  exit 1
+fi
+
+echo "Version: $UDO_BRANCH"
+echo "Site: $UDO_SITE"
+echo "User: $UDO_USER"
+echo "Dir: $UDO_DIR"
+
+if [[ ! -d ${UDO_DIR}/site/data ]] || [[ ! -f $UDO_DIR/site/plug.json ]] ||
+  [[ ! -f $UDO_DIR/site/conf.json ]]; then
+  echo "Could not find data directory ($UDO_DIR/site/data) or config files"
+  exit 1
+fi
+
+mkdir -p "$UDO_DIR"
+cd "$UDO_DIR" || exit 1
+mkdir -p "$UDO_BRANCH/cache"
+mkdir -p "$UDO_BRANCH/sock"
+mkdir -p "$UDO_BRANCH/www"
+
+echo "<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv=\"refresh\" content=\"2\"></meta>
+    <title>Please wait a sec...</title>
+    <style>
+      html, body {height: 100%; width: 100%; background #fff;}
+      body {display:flex; align-items: center; justify-content: center;}
+    </style>
+</head>
+<body>
+  <h3>Hang a sec, we are just doing some upgrades....</h3>
+</body>
+</html>" >"$UDO_BRANCH/www/internal_error503.html"
+
+echo "RequestHeader set X-Forwarded-Proto \"https\" \"expr='on'=='%{HTTPS}'\"
+DirectoryIndex disabled
+ErrorDocument 503 /internal_error503.html
+
+RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/internal_error503.html$ [NC]
+RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_BRANCH}/sock/nginx.sock|http://%{HTTP_HOST}/\$1\" [P,NE]
+" >"$UDO_BRANCH/www/.htaccess"
+
+chown -R "$UDO_USER:$UDO_USER" "$UDO_DIR"
+chmod 777 "$UDO_BRANCH/www"
+
+DOCKER_USER=$(id -u "$UDO_USER"):$(id -g "$UDO_USER")
+CONTAINER_NAME="${UDO_USER}_${UDO_SITE}"
+ 
+CHECKRUN=$(docker ps -a --filter "name=^$CONTAINER_NAME\$" | grep -o "$CONTAINER_NAME")
+if [ "$CHECKRUN" == "$CONTAINER_NAME" ]; then
+  if whiptail --yesno --defaultno \
+    --title "$CONTAINER_NAME" \
+     "Site already running, replace it?" 10 60; then
+    docker rm -f "$CONTAINER_NAME"
+  else
+    echo "Not starting new udo container"
+    exit 1
+  fi
+fi
+
+[[ -e "$UDO_BRANCH/sock/nginx.sock" ]] && rm -f "$UDO_BRANCH/sock/nginx.sock"
+
+docker run -d --user "$DOCKER_USER" \
+  --name "${CONTAINER_NAME}" \
+  --label "au.net.udo.ver=${UDO_BRANCH}" \
+  -v "${UDO_DIR}/site:/moddengine/site/$UDO_SITE" \
+  -v "${UDO_DIR}/backup:/moddengine/backup/$UDO_SITE" \
+  -v "${UDO_DIR}/$UDO_BRANCH/cache/:/moddengine/cache/$UDO_SITE" \
+  -v "${UDO_DIR}/$UDO_BRANCH/sock/:/run/nginx" \
+  -v /var/lib/mysql/:/run/mysql/ \
+  -e ME_SITE="$UDO_SITE" \
+  --restart always \
+  "moddengine/moddengine:${UDO_BRANCH}-latest"
+
+chmod 777 "$UDO_BRANCH/www"
+# Add live check, then create symlink
+ln -sf "$UDO_BRANCH/www" "$UDO_DIR/www"
+chown "$UDO_USER:$UDO_USER" "$UDO_DIR/www"
+
