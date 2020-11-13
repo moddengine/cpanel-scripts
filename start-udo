@@ -46,11 +46,11 @@ if [[ ! -d ${UDO_DIR}/site/data ]] || [[ ! -f $UDO_DIR/site/plug.json ]] ||
   exit 1
 fi
 
-mkdir -p "$UDO_DIR"
+sudo -u "$UDO_USER" mkdir -p "$UDO_DIR"
 cd "$UDO_DIR" || exit 1
-mkdir -p "$UDO_BRANCH/cache"
-mkdir -p "$UDO_BRANCH/sock"
-mkdir -p "$UDO_BRANCH/www"
+sudo -u "$UDO_USER" mkdir -p "$UDO_BRANCH/cache"
+sudo -u "$UDO_USER" mkdir -p "$UDO_BRANCH/sock"
+sudo -u "$UDO_USER" mkdir -p "$UDO_BRANCH/www"
 
 echo "<!DOCTYPE html>
 <html>
@@ -74,9 +74,9 @@ ErrorDocument 503 /internal_error503.html
 RewriteEngine On
 RewriteCond %{REQUEST_URI} !^/internal_error503.html$ [NC]
 RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_BRANCH}/sock/nginx.sock|http://%{HTTP_HOST}/\$1\" [P,NE]
-" >"$UDO_BRANCH/www/.htaccess"
+" |sudo -u "$UDO_USER" tee "$UDO_BRANCH/www/.htaccess" > /dev/null
 
-chown -R "$UDO_USER:$UDO_USER" "$UDO_DIR"
+# chown -R "$UDO_USER" "$UDO_DIR"
 chmod 775 "$UDO_BRANCH/www"
 
 DOCKER_USER=$(id -u "$UDO_USER"):$(id -g "$UDO_USER")
@@ -108,7 +108,7 @@ docker run -d --user "$DOCKER_USER" \
   --restart always \
   "moddengine/moddengine:${UDO_BRANCH}-latest"
 
-chmod 775 "$UDO_BRANCH/www"
+chmod 755 "$UDO_BRANCH/www"
 # Add live check, then create symlink
 ln -fns "$UDO_BRANCH/www" "$UDO_DIR/www"
-chown "$UDO_USER:$UDO_USER" "$UDO_DIR/www"
+chown "$UDO_USER" "$UDO_DIR/www"
