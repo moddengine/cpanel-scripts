@@ -54,5 +54,5 @@ for UPGRADE_NAME in $UPGRADE_LIST; do
   else
     ./start-udo "$UDO_USER" -s "$UDO_SITE" -b $UDO_BRANCH -i "$ME_IMAGE"
   fi
-  sleep 15
+  sleep 8
 done
