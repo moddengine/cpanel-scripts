@@ -112,7 +112,7 @@ docker run -d --user "$DOCKER_USER" \
   -v /var/lib/mysql/:/run/mysql/ \
   -e ME_SITE="$UDO_SITE" \
   --restart always \
-  "moddengine/moddengine:${UDO_BRANCH}-latest"
+  "moddengine/moddengine:$UDO_IMAGE"
 
 chmod 755 "$UDO_BRANCH/www"
 # Add live check, then create symlink
