@@ -14,6 +14,11 @@ while [[ $# -gt 0 ]]; do
     shift # past argument
     shift # past value
     ;;
+  -i | --image)
+    UDO_IMAGE="$2"
+    shift # past argument
+    shift # past value
+    ;;
   *)
     UDO_USER="$1"
     shift # past argument
@@ -27,6 +32,7 @@ if [[ -z "$UDO_USER" ]]; then
 fi
 [[ -z "$UDO_SITE" ]] && UDO_SITE=$UDO_USER
 [[ -z "$UDO_BRANCH" ]] && UDO_BRANCH="udo20"
+[[ -z "$UDO_IMAGE" ]] && UDO_IMAGE="${UDO_BRANCH}-latest"
 UDO_HOME=$(getent passwd "$UDO_USER" | cut -d: -f6)
 UDO_DIR="$UDO_HOME/udo/$UDO_SITE"
 

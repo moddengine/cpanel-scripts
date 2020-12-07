@@ -16,6 +16,19 @@ done
 echo "Pulling latest version for $UDO_BRANCH"
 docker pull "moddengine/moddengine:${UDO_BRANCH}-latest"
 
+ME_IMAGE_ID=$(docker image ls moddengine/moddengine:udo20-latest --format '{{.ID}}')
+ME_LATEST_VER=$(docker image inspect --format '{{json .}}' "$ME_IMAGE_ID" |
+  php -d display_errors=on -r "echo(json_decode(file_get_contents('php://stdin'), true)['Config']['Labels']['org.opencontainers.image.version'] ?? '');")
+
+if [[ -z "$ME_LATEST_VER" ]]; then
+  echo "Could not find latest image version, using latest image"
+  true
+else
+  ME_IMAGE="v$ME_LATEST_VER"
+  echo "Pulling latest image for $ME_IMAGE"
+  docker pull "moddengine/moddengine:$ME_IMAGE"
+fi
+
 UPGRADE_LIST=$(
   whiptail \
     --title "$UDO_BRANCH Container to upgrade" \
@@ -36,6 +49,10 @@ for UPGRADE_NAME in $UPGRADE_LIST; do
   UDO_USER=$(echo "$UPGRADE_NAME" | cut -f1 -d_)
   UDO_SITE=$(echo "$UPGRADE_NAME" | cut -f2 -d_)
 
-  ./start-udo "$UDO_USER" -s "$UDO_SITE" -b $UDO_BRANCH
+  if [[ $ME_NO_IMAGE ]]; then
+    ./start-udo "$UDO_USER" -s "$UDO_SITE" -b $UDO_BRANCH
+  else
+    ./start-udo "$UDO_USER" -s "$UDO_SITE" -b $UDO_BRANCH -i "$ME_IMAGE"
+  fi
   sleep 15
 done
