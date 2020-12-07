@@ -34,7 +34,7 @@ UPGRADE_LIST=$(
     --title "$UDO_BRANCH Container to upgrade" \
     --separate-output \
     --checklist "Select Container" 20 90 14 \
-    $(docker ps -a --format "{{ .Names }} {{ .Image }} OFF" --filter label=au.net.udo.ver="$UDO_BRANCH") \
+    $(docker ps -a --format "{{ .Names }} {{ .Image }} OFF" --filter label=au.net.udo.ver="$UDO_BRANCH" | sed s/moddengine\\/moddengine://) \
     3>&1 1>&2 2>&3
 )
 
