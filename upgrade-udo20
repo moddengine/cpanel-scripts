@@ -16,7 +16,7 @@ done
 echo "Pulling latest version for $UDO_BRANCH"
 docker pull "moddengine/moddengine:${UDO_BRANCH}-latest"
 
-ME_IMAGE_ID=$(docker image ls moddengine/moddengine:udo20-latest --format '{{.ID}}')
+ME_IMAGE_ID=$(docker image ls moddengine/moddengine:udo20-latest --format '{{.ID}}'|head -n1)
 ME_LATEST_VER=$(docker image inspect --format '{{json .}}' "$ME_IMAGE_ID" |
   php -d display_errors=on -r "echo(json_decode(file_get_contents('php://stdin'), true)['Config']['Labels']['org.opencontainers.image.version'] ?? '');")
 
