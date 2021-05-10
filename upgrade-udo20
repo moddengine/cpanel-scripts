@@ -27,6 +27,10 @@ else
   ME_IMAGE="v$ME_LATEST_VER"
   echo "Pulling latest image for $ME_IMAGE"
   docker pull "moddengine/moddengine:$ME_IMAGE"
+  if [[ $? -ne 0 ]]; then
+    echo "Unable to find image for version: $ME_IMAGE"
+    exit 1;
+  fi
 fi
 
 UPGRADE_LIST=$(
