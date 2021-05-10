@@ -118,3 +118,4 @@ chmod 755 "$UDO_BRANCH/www"
 # Add live check, then create symlink
 ln -fns "$UDO_BRANCH/www" "$UDO_DIR/www"
 chown "$UDO_USER" "$UDO_DIR/www"
+chown "$UDO_USER" "$UDO_DIR/backup"
