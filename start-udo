@@ -79,7 +79,7 @@ ErrorDocument 503 /internal_error503.html
 
 RewriteEngine On
 RewriteCond %{REQUEST_URI} !^/internal_error503.html$ [NC]
-RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_BRANCH}/sock/nginx.sock|http://%{HTTP_HOST}/\$1\" [P,NE]
+RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_BRANCH}/sock/nginx.sock|http://%{HTTP_HOST}/\$1\" [P,NE,B]
 " |sudo -u "$UDO_USER" tee "$UDO_BRANCH/www/.htaccess" > /dev/null
 
 # chown -R "$UDO_USER" "$UDO_DIR"
