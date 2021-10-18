@@ -111,6 +111,7 @@ docker run -d --user "$DOCKER_USER" \
   -v "${UDO_DIR}/$UDO_BRANCH/sock/:/run/nginx" \
   -v /var/lib/mysql/:/run/mysql/ \
   -e ME_SITE="$UDO_SITE" \
+  -e ME_SITE___graylog___host=172.16.77.69  \
   --restart always \
   "moddengine/moddengine:$UDO_IMAGE"
 
