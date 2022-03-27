@@ -4,7 +4,7 @@ NEW_USER="$1"
 [[ -z "$2" ]] && NEW_SITE="${NEW_USER}" || NEW_SITE="$2"
 [[ -z "$2" ]] && NEW_DB="udo20" || NEW_DB="$2"
 
-MASTER_PATH="/home/masterudonet/moddengine/site/master"
+MASTER_PATH="/home/masterudonet/udo/masterudonet/site"
 MASTER_DB="masterudonet_udo19"
 DB_PASS=$(pwgen -sn1B 24)
 DB_NAME="${NEW_USER}_${NEW_DB}"
