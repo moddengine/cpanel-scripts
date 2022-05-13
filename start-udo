@@ -78,6 +78,7 @@ if [[ -z "$DOCKER_IMAGE" ]]; then
   echo "Could not find docker image moddengine/moddengine:${UDO_IMAGE}"
   exit 1
 fi
+
 UDO_HOSTNAME="127.0.0.1"
 UDO_HOST="http://${UDO_HOSTNAME}"
 
@@ -107,7 +108,7 @@ function check_health() {
   local error_msg
   local error
   for i in {1..5}; do
-    error_msg=$(curlf --unix-socket "${UDO_SOCKET}" "${UDO_HOST}/~/health/check" -H "X-Forwarded-Proto: https")
+    error_msg=$(curlf --unix-socket "${UDO_SOCKET}" "${UDO_HOST}/~/health/check" -H "X-Forwarded-Proto: https" -H "X-Skip-Redirect: skip")
     error=$?
     [[ "$error" -eq "0" ]] && break
     echo -n "."
@@ -201,6 +202,8 @@ stop_container_if_up "${NEW_CONTAINER_NAME}"
 docker run -d --user "$DOCKER_USER" \
          --name "${NEW_CONTAINER_NAME}" \
          --label "au.net.udo.ver=${UDO_BRANCH}" \
+         --label "au.net.udo.user=${UDO_USER}" \
+         --label "au.net.udo.site=${UDO_SITE}" \
          -v "${UDO_DIR}/site:/moddengine/site/$UDO_SITE" \
          -v "${UDO_DIR}/backup:/moddengine/backup/$UDO_SITE" \
          -v "${UDO_DIR}/${UDO_INSTANCE}/cache/:/moddengine/cache/$UDO_SITE" \
@@ -215,12 +218,22 @@ chmod 755 "${UDO_DIR}/${UDO_INSTANCE}/www"
 chown "$UDO_USER" "$UDO_DIR/www"
 chown "$UDO_USER" "$UDO_DIR/backup"
 
+function make_new_live() {
+    ln -fns "${UDO_DIR}/${UDO_INSTANCE}/www" "${UDO_DIR}/www-${UDO_INSTANCE}"
+    mv -fT "${UDO_DIR}/www-${UDO_INSTANCE}" "${UDO_DIR}/www"
+}
+
+RUN_COUNT=$(docker ps -a --filter "name=^${BASE_CONTAINER_NAME}" | grep -o "${BASE_CONTAINER_NAME}" | wc -l)
+if [[ "${RUN_COUNT}" -lt 2 ]]; then
+  echo "No existing container found, making this container live"
+  make_new_live
+  exit 0
+fi
 check_health && upgrade_check
 NEW_UDO_IS_OK=$?
 if [ "$NEW_UDO_IS_OK" -eq 0 ]; then
   ### Point new container, and stop old one
-  ln -fns "${UDO_DIR}/${UDO_INSTANCE}/www" "${UDO_DIR}/www-${UDO_INSTANCE}"
-  mv -fT "${UDO_DIR}/www-${UDO_INSTANCE}" "${UDO_DIR}/www"
+  make_new_live
 
   echo "Stopping and removing up old container"
 
