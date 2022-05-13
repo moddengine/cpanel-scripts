@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 CHAT_URL="$(grep '^CHAT_URL=' .env | sed -e 's/^CHAT_URL=\(.*\)$/\1/')"
+SKIP_CHECK="0"
 while [[ $# -gt 0 ]]; do
   key="$1"
 
@@ -18,6 +19,10 @@ while [[ $# -gt 0 ]]; do
     UDO_IMAGE="$2"
     shift # past argument
     shift # past value
+    ;;
+  --skip-check)
+    SKIP_CHECK=1
+    shift # past argument
     ;;
   *)
     UDO_USER="$1"
@@ -229,17 +234,19 @@ if [[ "${RUN_COUNT}" -lt 2 ]]; then
   make_new_live
   exit 0
 fi
-check_health && upgrade_check
-NEW_UDO_IS_OK=$?
-if [ "$NEW_UDO_IS_OK" -eq 0 ]; then
-  ### Point new container, and stop old one
-  make_new_live
-
-  echo "Stopping and removing up old container"
-
-  stop_container_if_up "${BASE_CONTAINER_NAME}"
-  stop_container_if_up "${OLD_CONTAINER_NAME}"
-
-else
-  echo "New container is not up, exiting early"
+if [[ "$SKIP_CHECK" == "0" ]]; then
+  check_health && upgrade_check
+  NEW_UDO_IS_OK=$?
+  if [ ! "$NEW_UDO_IS_OK" -eq 0 ]; then
+    echo "New container is not up, exiting early"
+    exit 1
+  fi
 fi
+
+### Point new container, and stop old one
+make_new_live
+
+echo "Stopping and removing up old container"
+
+stop_container_if_up "${BASE_CONTAINER_NAME}"
+stop_container_if_up "${OLD_CONTAINER_NAME}"
