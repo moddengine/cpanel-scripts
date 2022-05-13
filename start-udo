@@ -83,8 +83,6 @@ UDO_HOST="http://${UDO_HOSTNAME}"
 
 echo "Website: ${UDO_HOST}"
 
-exit 1
-
 function curlf() {
   OUTPUT_FILE=$(mktemp)
   # echo "CURL: curl --silent --output $OUTPUT_FILE --write-out \"%{http_code}\" $@" >&2
@@ -109,7 +107,7 @@ function check_health() {
   local error_msg
   local error
   for i in {1..5}; do
-    error_msg=$(curlf --unix-socket "${UDO_SOCKET}" "${UDO_HOST}/~/health/check?fail=1" -H "X-Forwarded-Proto: https")
+    error_msg=$(curlf --unix-socket "${UDO_SOCKET}" "${UDO_HOST}/~/health/check" -H "X-Forwarded-Proto: https")
     error=$?
     [[ "$error" -eq "0" ]] && break
     echo -n "."
