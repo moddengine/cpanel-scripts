@@ -1,0 +1,44 @@
+#!/bin/bash
+while [[ $# -gt 0 ]]; do
+  key="$1"
+
+  case $key in
+  -s | --site)
+    UDO_SITE="$2"
+    shift # past argument
+    shift # past value
+    ;;
+  *)
+    break
+    ;;
+  esac
+done
+
+UDO_USER="$1"
+shift # past argument
+
+function show_help() {
+  [[ -z "$1" ]] || (echo "$1" && echo "")
+  cat <<ENDHELP
+  Usage: me [options] <username> [...<site commands>]
+
+  Options:
+    -s, --site <site>      The name of the site in the udo folder, defaults to username
+
+ENDHELP
+}
+if [[ -z "$UDO_USER" ]]; then
+  show_help "Missing username"
+  exit 1
+fi
+
+UDO_SITE="${UDO_SITE:-$UDO_USER}"
+
+if [[ ! -d "/home/${UDO_USER}/udo/${UDO_SITE}" ]]; then
+  show_help "Site could not be located"
+  exit 1
+fi
+
+UDO_LIVE_INSTANCE=$(readlink -f "/home/${UDO_USER}/udo/${UDO_SITE}/www" | cut -d/ -f6)
+
+docker exec -it "${UDO_USER}_${UDO_SITE}_${UDO_LIVE_INSTANCE}" php me.php
