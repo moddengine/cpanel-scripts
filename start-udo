@@ -58,7 +58,6 @@ if [[ -z "$UDO_HOME" ]] || [[ ! -d "$UDO_HOME" ]]; then
   exit 1
 fi
 
-readlink -f "${UDO_DIR}/www"
 UDO_LIVE_INSTANCE=$(readlink -f "${UDO_DIR}/www" | cut -d/ -f6)
 [[ "$UDO_LIVE_INSTANCE" == "blue" ]] && UDO_INSTANCE=green
 
