@@ -41,4 +41,4 @@ fi
 
 UDO_LIVE_INSTANCE=$(readlink -f "/home/${UDO_USER}/udo/${UDO_SITE}/www" | cut -d/ -f6)
 
-docker exec -it "${UDO_USER}_${UDO_SITE}_${UDO_LIVE_INSTANCE}" php me.php
+docker exec -it "${UDO_USER}_${UDO_SITE}_${UDO_LIVE_INSTANCE}" php me.php $@
