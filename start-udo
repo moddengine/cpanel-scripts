@@ -206,7 +206,7 @@ docker run -d --user "$DOCKER_USER" \
          --label "au.net.udo.ver=${UDO_BRANCH}" \
          --label "au.net.udo.user=${UDO_USER}" \
          --label "au.net.udo.site=${UDO_SITE}" \
-         --label "au.net.udo.upgrade=auto"
+         --label "au.net.udo.upgrade=auto" \
          -v "${UDO_DIR}/site:/moddengine/site/$UDO_SITE" \
          -v "${UDO_DIR}/backup:/moddengine/backup/$UDO_SITE" \
          -v "${UDO_DIR}/${UDO_INSTANCE}/cache/:/moddengine/cache/$UDO_SITE" \
