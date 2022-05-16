@@ -186,8 +186,6 @@ RewriteCond %{REQUEST_URI} !^/internal_error503.html$ [NC]
 RewriteRule ^(.*)$ \"unix:${UDO_DIR}/${UDO_INSTANCE}/sock/nginx.sock|http://%{HTTP_HOST}/\$1\" [P,NE,B=%\ |:]
 " |sudo -u "${UDO_USER}" tee "${UDO_DIR}/${UDO_INSTANCE}/www/.htaccess" > /dev/null
 
-# chown -R "$UDO_USER" "$UDO_DIR"
-chmod 775 "${UDO_DIR}/${UDO_BRANCH}/www"
 
 DOCKER_USER=$(id -u "$UDO_USER"):$(id -g "$UDO_USER")
 BASE_CONTAINER_NAME="${UDO_USER}_${UDO_SITE}"
