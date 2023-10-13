@@ -7,6 +7,6 @@ MODD WHM/CPanel Deployment Scripts
 
 `./setup-udo-master <user> <name>` to copy master theme to user account, site named <name>.
 
-`./start-udo` <user>` to start container for user, named <user>
+`./start-udo <user>` to start container for user, named <user>
 
 `./start-udo <user> -s <name>` to setup container for user named <name>.
