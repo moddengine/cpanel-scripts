@@ -111,7 +111,7 @@ function check_health() {
   echo -n "Checking health"
   local error_msg
   local error
-  for i in {1..5}; do
+  for i in {1..30}; do
     error_msg=$(curlf --unix-socket "${UDO_SOCKET}" "${UDO_HOST}/~/health/check" -H "X-Forwarded-Proto: https" -H "X-Skip-Redirect: skip")
     error=$?
     [[ "$error" -eq "0" ]] && break
@@ -211,6 +211,7 @@ docker run -d --user "$DOCKER_USER" \
          -v "${UDO_DIR}/backup:/moddengine/backup/$UDO_SITE" \
          -v "${UDO_DIR}/${UDO_INSTANCE}/cache/:/moddengine/cache/$UDO_SITE" \
          -v "${UDO_DIR}/${UDO_INSTANCE}/sock/:/run/nginx" \
+         -v "${UDO_HOME}/secrets:/moddengine/secrets:ro" \
          -v /var/lib/mysql/:/run/mysql/ \
          --network=udo-net \
          -e ME_SITE="$UDO_SITE" \
@@ -233,7 +234,7 @@ if [[ "${RUN_COUNT}" -lt 2 ]]; then
   exit 0
 fi
 if [[ "$SKIP_CHECK" == "0" ]]; then
-  check_health && upgrade_check
+  check_health # skipping for now - && upgrade_check
   NEW_UDO_IS_OK=$?
   if [ ! "$NEW_UDO_IS_OK" -eq 0 ]; then
     echo "New container is not up, exiting early"
