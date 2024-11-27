@@ -60,20 +60,21 @@ SETUP=$(whiptail --title "Website Domain Setup" --nocancel \
   --menu "Which domain should new website use?" 14 60 3 \
     "new" "new.domain.com" \
     "www" "domain.com (or domain_com_myudo.net)" \
-    "none" "Dont setup domain now, I will do it later")
+    "none" "Dont setup domain now, I will do it later" 3>&1 1>&2 2>&3)
 
 case $SETUP in
   new)
-    echo "Not Implmented Yet, you will have to do it manually"
+    #echo "Not Implmented Yet, you will have to do it manually"
     BASE_DOMAIN=$(whmapi1 --output=jsonpretty accountsummary user="${NEW_USER}" | jq -r '.data.acct[0].domain')
     NEW_DOMAIN="new.${BASE_DOMAIN}"
     whmapi1 --output=jsonpretty create_subdomain domain="$NEW_DOMAIN" document_root="udo/$NEW_SITE/www"
-    exit 1;
+    exit 0;
     ;;
-  domain.com)
+  www)
     NONCE=$(xxd -l 4 -p /dev/random)
     sudo -u "${NEW_USER}" mv "$NEW_HOME/public_html" "$NEW_HOME/public_html.old_$NONCE"
     sudo -u "${NEW_USER}" ln -s "$NEW_HOME/udo/$NEW_SITE/www" "$NEW_HOME/public_html"
+    exit 0;
     ;;
   none)
     echo "Skipping setting up domain name"
